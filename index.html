@@ -1,0 +1,855 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>LaserSafe See What a Laser Does Inside the Eye</title>
+    <meta
+      name="description"
+      content="Interactive educational simulation: change a laser's settings and watch the beam travel through an animated eye and heat the retina."
+    />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <header class="top">
+      <h1>LaserSafe <span>See what a laser can do inside the eye</span></h1>
+    </header>
+
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button
+        type="button"
+        role="tab"
+        id="tabBtnSim"
+        aria-controls="tabSim"
+        aria-selected="true"
+      >
+        Laser simulator
+      </button>
+      <button
+        type="button"
+        role="tab"
+        id="tabBtnCmp"
+        aria-controls="tabCmp"
+        aria-selected="false"
+        tabindex="-1"
+      >
+        Laser vs everyday light
+      </button>
+    </nav>
+
+    <main
+      class="layout"
+      id="tabSim"
+      role="tabpanel"
+      aria-labelledby="tabBtnSim"
+    >
+      <!-- ================= EYE ================= -->
+      <div class="stage">
+        <section class="simcard" aria-label="Laser and eye simulation">
+          <div class="simhead">
+            <div class="status" id="status" role="status" aria-live="polite">
+              <i class="dot" id="stDot"></i>
+              <div><strong id="stName"></strong><span id="stText"></span></div>
+            </div>
+            <div class="acts">
+              <div class="seg" id="viewSeg" role="group" aria-label="Eye view">
+                <button type="button" data-v="healthy" aria-pressed="false">
+                  Before
+                </button>
+                <button type="button" data-v="exposed" aria-pressed="true">
+                  After
+                </button>
+              </div>
+              <button type="button" class="act" id="replayBtn">
+                &#9654; Replay
+              </button>
+              <button type="button" class="act" id="resetBtn">
+                &#8634; Reset eye
+              </button>
+            </div>
+          </div>
+
+          <svg
+            id="sim"
+            viewBox="0 0 1100 560"
+            role="img"
+            aria-labelledby="simTitle simDesc"
+          >
+            <title id="simTitle">
+              Laser beam entering a cross-section of the human eye
+            </title>
+            <desc id="simDesc">
+              A laser on the left sends a beam into an eye cross-section on the
+              right. The beam passes the pupil, is focused by the cornea and
+              lens, and lands on the retina, where a damaged spot can appear.
+            </desc>
+            <defs>
+              <radialGradient id="gVit" cx="0.78" cy="0.5" r="0.75">
+                <stop offset="0" stop-color="#2a566f" />
+                <stop offset="1" stop-color="#0f2434" />
+              </radialGradient>
+              <radialGradient id="gBg" cx="0.8" cy="0.5" r="0.8">
+                <stop offset="0" stop-color="#0b1b2a" />
+                <stop offset="1" stop-color="#040a11" />
+              </radialGradient>
+              <linearGradient id="gIris" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#58a4b8" />
+                <stop offset="1" stop-color="#2a6073" />
+              </linearGradient>
+              <linearGradient id="gBeam" x1="0" y1="0" x2="0" y2="1">
+                <stop id="gs0" offset="0" />
+                <stop id="gs1" offset="0.25" />
+                <stop id="gs2" offset="0.5" />
+                <stop id="gs3" offset="0.75" />
+                <stop id="gs4" offset="1" />
+              </linearGradient>
+              <filter
+                id="fBeam"
+                filterUnits="userSpaceOnUse"
+                x="0"
+                y="0"
+                width="1100"
+                height="560"
+              >
+                <feGaussianBlur id="fBeamBlur" stdDeviation="6" />
+              </filter>
+              <filter
+                id="fSpot"
+                filterUnits="userSpaceOnUse"
+                x="0"
+                y="0"
+                width="1100"
+                height="560"
+              >
+                <feGaussianBlur stdDeviation="5" />
+              </filter>
+              <filter
+                id="fLes"
+                filterUnits="userSpaceOnUse"
+                x="0"
+                y="0"
+                width="1100"
+                height="560"
+              >
+                <feGaussianBlur stdDeviation="4" />
+              </filter>
+              <clipPath id="reveal">
+                <rect id="revealRect" x="0" y="0" width="1100" height="560" />
+              </clipPath>
+            </defs>
+            <rect width="1100" height="560" fill="url(#gBg)" />
+            <rect
+              id="ambTint"
+              width="1100"
+              height="560"
+              fill="#000"
+              opacity="0"
+            />
+
+            <!-- beam in the air -->
+            <g id="beamLayer" clip-path="url(#reveal)">
+              <polygon id="beamGlow" filter="url(#fBeam)" />
+              <polygon id="beamPoly" fill="url(#gBeam)" />
+              <polyline id="e1" class="flow" fill="none" stroke-width="2" />
+              <polyline id="e2" class="flow" fill="none" stroke-width="2" />
+              <line
+                id="axis"
+                class="flow"
+                x1="156"
+                x2="618"
+                y1="280"
+                y2="280"
+                stroke-width="2.5"
+              />
+            </g>
+
+            <!-- laser -->
+            <g id="laser">
+              <text id="lasLbl" class="lbl dim" x="87" text-anchor="middle">
+                LASER
+              </text>
+              <rect
+                id="housing"
+                x="28"
+                width="120"
+                rx="10"
+                fill="#14293b"
+                stroke="#7fa3bd"
+                stroke-width="2"
+              />
+              <rect id="hband" x="116" width="32" fill="#0e2031" />
+              <text
+                id="lasWave"
+                x="70"
+                font-size="19"
+                font-weight="700"
+                text-anchor="middle"
+              ></text>
+              <text
+                id="lasPow"
+                x="70"
+                font-size="17"
+                text-anchor="middle"
+                fill="#cfe0ec"
+              ></text>
+              <rect id="aperture" x="144" width="12" rx="3" />
+            </g>
+
+            <!-- eye anatomy: drawn in millimetres, 17 px per mm, cornea vertex at (620,280) -->
+            <g
+              id="eye"
+              transform="translate(620 280) scale(17)"
+              fill="none"
+              stroke-linejoin="round"
+            >
+              <polygon
+                points="23.48,3.70 26.44,4.90 25.92,6.19 22.95,4.99"
+                fill="#b9a99a"
+                fill-opacity=".85"
+                stroke="#d9cdbf"
+                stroke-width="2"
+              />
+              <path
+                d="M2.25 -5.5 A11.6 11.6 0 1 1 2.25 5.5 Z"
+                fill="url(#gVit)"
+                stroke="none"
+              />
+              <path
+                id="vitGlow"
+                d="M2.25 -5.5 A11.6 11.6 0 1 1 2.25 5.5 Z"
+                fill="#ff9a40"
+                stroke="none"
+                opacity="0"
+              />
+              <path
+                d="M2.25 -5.5 A7.8 7.8 0 0 0 2.25 5.5 Z"
+                fill="#2b6283"
+                fill-opacity=".42"
+                stroke="none"
+              />
+              <path
+                d="M3.3 -7.0 L3.85 -6.9 L5.6 -8.4 L5.0 -8.9 L3.6 -7.5 Z M3.3 7.0 L3.85 6.9 L5.6 8.4 L5.0 8.9 L3.6 7.5 Z"
+                fill="#7a5560"
+                stroke="none"
+              />
+              <path
+                d="M2.25 -5.5 A11.6 11.6 0 1 1 2.25 5.5"
+                stroke="#dfe8ef"
+                stroke-width="9"
+                stroke-linecap="round"
+              />
+              <path
+                d="M14.43 -11.18 A11.35 11.35 0 0 1 14.43 11.18"
+                stroke="#6b2233"
+                stroke-width="3"
+              />
+              <path
+                d="M14.37 -10.83 A11 11 0 0 1 14.37 10.83"
+                stroke="#e0728a"
+                stroke-width="4.5"
+                stroke-linecap="round"
+              />
+              <ellipse
+                cx="23.25"
+                cy="0"
+                rx="0.35"
+                ry="1.2"
+                fill="#f2c767"
+                fill-opacity=".55"
+                stroke="none"
+              />
+              <path
+                d="M2.25 -5.5 A7.8 7.8 0 0 0 2.25 5.5 L3.08 5.5 A7.25 7.25 0 0 1 3.08 -5.5 Z"
+                fill="#9fdcf4"
+                fill-opacity=".30"
+                stroke="#a9e1f7"
+                stroke-width="2"
+              />
+              <rect
+                id="irisT"
+                x="3.35"
+                width="0.5"
+                rx="0.15"
+                fill="url(#gIris)"
+                stroke="none"
+              />
+              <rect
+                id="irisB"
+                x="3.35"
+                width="0.5"
+                rx="0.15"
+                fill="url(#gIris)"
+                stroke="none"
+              />
+              <rect
+                id="blkT"
+                x="3.35"
+                width="0.5"
+                rx="0.15"
+                stroke="none"
+                opacity="0.85"
+              />
+              <rect
+                id="blkB"
+                x="3.35"
+                width="0.5"
+                rx="0.15"
+                stroke="none"
+                opacity="0.85"
+              />
+              <path
+                d="M5.0 -4.55 L4.2 -6.6 M5.8 -4.55 L6.6 -6.6 M5.0 4.55 L4.2 6.6 M5.8 4.55 L6.6 6.6"
+                stroke="#7da0b5"
+                stroke-width="1"
+                opacity=".7"
+              />
+              <ellipse
+                cx="5.4"
+                cy="0"
+                rx="1.8"
+                ry="4.6"
+                fill="#bfe6f5"
+                fill-opacity=".22"
+                stroke="#aee0f2"
+                stroke-width="2.5"
+              />
+              <ellipse
+                id="lensGlow"
+                cx="5.4"
+                cy="0"
+                rx="1.8"
+                ry="4.6"
+                fill="#ffb347"
+                stroke="none"
+                opacity="0"
+              />
+              <ellipse
+                cx="5.0"
+                cy="-0.6"
+                rx="0.9"
+                ry="3.1"
+                fill="#fff"
+                fill-opacity=".06"
+                stroke="none"
+              />
+            </g>
+
+            <!-- retinal injury (drawn on the retina; size exaggerated for visibility) -->
+            <g id="lesion" fill="none" stroke-linecap="round" display="none">
+              <path id="lsHalo" stroke="#fff1c9" filter="url(#fLes)" />
+              <path id="lsRisk" stroke="#f0b955" class="pulse" />
+              <path id="lsWhite" stroke="#e8dcc6" />
+              <path id="lsRim" stroke="#8a3a1c" />
+              <path id="lsCore" stroke="#140805" />
+              <g id="lsHem" stroke="none" fill="#8a0f1c">
+                <circle id="hem0" />
+                <circle id="hem1" />
+                <circle id="hem2" />
+              </g>
+              <circle id="heat0" class="heat" cx="1018.7" cy="280" r="14" />
+              <circle
+                id="heat1"
+                class="heat"
+                cx="1018.7"
+                cy="280"
+                r="14"
+                style="animation-delay: 0.9s"
+              />
+            </g>
+
+            <!-- light blocked by the iris -->
+            <g clip-path="url(#reveal)">
+              <polygon id="wedgeT" stroke="none" />
+              <polygon id="wedgeB" stroke="none" />
+            </g>
+
+            <!-- light entering the eye -->
+            <g id="inEye" fill="none" clip-path="url(#reveal)">
+              <polygon id="bundle" stroke="none" />
+              <polyline id="ray0" class="flow" stroke-width="1.8" />
+              <polyline id="ray1" class="flow" stroke-width="1.8" />
+              <polyline id="ray2" class="flow" stroke-width="1.8" />
+              <polyline id="ray3" class="flow" stroke-width="2.2" />
+              <polyline id="ray4" class="flow" stroke-width="1.8" />
+              <polyline id="ray5" class="flow" stroke-width="1.8" />
+              <polyline id="ray6" class="flow" stroke-width="1.8" />
+              <circle id="spotGlow" filter="url(#fSpot)" stroke="none" />
+              <circle id="spot" stroke="none" />
+            </g>
+            <circle id="head" r="7" display="none" filter="url(#fSpot)" />
+
+            <!-- injury callout -->
+            <g id="callout" display="none">
+              <line
+                id="leader"
+                x1="1066"
+                y1="84"
+                x2="1036"
+                y2="266"
+                stroke-width="1.6"
+              />
+              <path
+                id="warnIcon"
+                d="M1081 33 L1096 59 L1066 59 Z"
+                stroke-width="2.5"
+                stroke-linejoin="round"
+                fill="none"
+              />
+              <text
+                x="1081"
+                y="53"
+                font-size="16"
+                font-weight="700"
+                text-anchor="middle"
+                id="warnMark"
+              >
+                !
+              </text>
+              <text
+                id="call1"
+                class="halo"
+                x="1058"
+                y="44"
+                font-size="19"
+                font-weight="700"
+                text-anchor="end"
+              ></text>
+              <text
+                id="call2"
+                class="halo"
+                x="1058"
+                y="66"
+                font-size="15"
+                text-anchor="end"
+                fill="#b9cddc"
+              ></text>
+            </g>
+
+            <!-- labels -->
+            <g class="lbl">
+              <text x="548" y="452" text-anchor="end">Cornea</text>
+              <text x="655" y="104" text-anchor="middle">Iris &amp; pupil</text>
+              <text
+                id="pupTxt"
+                x="640"
+                y="126"
+                text-anchor="end"
+                style="fill: #7f9bb0; font-size: 15px"
+              ></text>
+              <text x="760" y="132" text-anchor="middle">Lens</text>
+              <text
+                x="880"
+                y="298"
+                text-anchor="middle"
+                style="fill: #7f9bb0; font-size: 16px"
+              >
+                Vitreous humour
+              </text>
+              <text x="960" y="492" text-anchor="middle">Retina</text>
+              <text x="1064" y="322" text-anchor="middle">Fovea</text>
+              <text
+                x="1044"
+                y="414"
+                text-anchor="middle"
+                style="fill: #7f9bb0; font-size: 16px"
+              >
+                Optic nerve
+              </text>
+            </g>
+            <g stroke="#5d788c" stroke-width="1.2" fill="none">
+              <line x1="552" y1="440" x2="624" y2="333" />
+              <line x1="660" y1="112" x2="682" y2="190" />
+              <line x1="760" y1="140" x2="716" y2="206" />
+              <line x1="955" y1="478" x2="944" y2="428" />
+              <line x1="1046" y1="314" x2="1028" y2="288" />
+              <line x1="1048" y1="400" x2="1052" y2="374" />
+            </g>
+
+            <!-- distance marker + notes -->
+            <g id="dimG" stroke="#7f9bb0" stroke-width="1.5" fill="#7f9bb0">
+              <line id="dimLine" x1="156" x2="612" y1="546" y2="546" />
+              <path
+                d="M156 546 l9 -5 v10 z M612 546 l-9 -5 v10 z"
+                stroke="none"
+              />
+              <text
+                id="dimTxt"
+                class="halo"
+                x="384"
+                y="538"
+                text-anchor="middle"
+                stroke-width="5"
+                style="fill: #b9cddc; font-size: 16px"
+              ></text>
+            </g>
+            <text x="28" y="34" style="fill: #7f9bb0; font-size: 15px">
+              Eye and beam width to scale. Injury is enlarged so you can see it.
+            </text>
+            <text
+              id="clipnote"
+              x="28"
+              y="56"
+              style="fill: #f0b955; font-size: 15px"
+            ></text>
+          </svg>
+
+          <div class="reach" id="reach" aria-label="Where the light goes"></div>
+
+          <div class="meter">
+            <div class="mh">
+              <strong>Injury index</strong
+              ><output id="mval" aria-live="off"></output>
+            </div>
+            <div class="mtrack">
+              <i class="z z0"></i><i class="z z1"></i><i class="z z2"></i
+              ><i class="z z3"></i><i class="mmark" id="mmark"></i>
+            </div>
+            <div class="mticks">
+              <span>Low</span><span>At risk</span><span>Injury</span
+              ><span>Severe</span>
+            </div>
+            <p class="mnote">
+              scale. Index 1 is the model&rsquo;s injury threshold.
+            </p>
+          </div>
+        </section>
+      </div>
+
+      <!-- ================= CONTROLS ================= -->
+      <aside class="controls" aria-label="Laser and eye controls">
+        <section>
+          <h2>Try a laser</h2>
+          <div class="chips" id="presets"></div>
+        </section>
+        <section>
+          <h2>Laser</h2>
+          <div id="ctlLaser"></div>
+          <div class="ctl">
+            <div class="ch">
+              <span class="ch-l" id="profLbl">Beam profile</span>
+            </div>
+            <div class="seg" role="group" aria-labelledby="profLbl">
+              <button type="button" data-m="gaussian" aria-pressed="true">
+                Gaussian
+              </button>
+              <button type="button" data-m="tophat" aria-pressed="false">
+                Top-hat
+              </button>
+            </div>
+            <p class="hint">
+              Gaussian: brightest in the middle. Top-hat: even.
+            </p>
+          </div>
+        </section>
+        <section>
+          <h2>Eye</h2>
+          <div class="ctl">
+            <div class="ch">
+              <span class="ch-l" id="pupLbl">Pupil control</span>
+            </div>
+            <div class="seg" id="pupSeg" role="group" aria-labelledby="pupLbl">
+              <button type="button" data-p="auto" aria-pressed="true">
+                Auto (light)
+              </button>
+              <button type="button" data-p="manual" aria-pressed="false">
+                Manual
+              </button>
+            </div>
+          </div>
+          <div id="ctlEye"></div>
+        </section>
+      </aside>
+
+      <!-- ================= BELOW THE EYE ================= -->
+      <div class="rest">
+        <section class="card" aria-labelledby="hClose">
+          <div class="cardhead">
+            <h2 id="hClose">Retina close-up</h2>
+            <div class="pinacts">
+              <button type="button" class="act" id="pinBtn">
+                Pin this setup
+              </button>
+              <button type="button" class="act" id="pupilCmpBtn">
+                Small vs large pupil
+              </button>
+              <button type="button" class="act" id="unpinBtn" hidden>
+                Clear pin
+              </button>
+            </div>
+          </div>
+          <div class="closeup" id="closeup">
+            <figure class="fc" id="fcHealthy"></figure>
+            <figure class="fc" id="fcLive"></figure>
+            <figure class="fc" id="fcPin" hidden></figure>
+          </div>
+          <p class="small" id="pinHint">
+            Pin a setup, then change a slider to compare the same laser under
+            different conditions.
+          </p>
+        </section>
+
+        <section class="card" aria-labelledby="hNum">
+          <h2 id="hNum">Numbers</h2>
+          <div class="cards" id="cards"></div>
+        </section>
+
+        <section class="card" aria-labelledby="hWhy">
+          <h2 id="hWhy">What is happening</h2>
+          <ul class="exlist" id="exList"></ul>
+        </section>
+
+        <details class="card notes">
+          <summary>About this model</summary>
+          <ul>
+            <li>
+              The beam is centred on the pupil. The eye looks straight at the
+              laser and is in focus.
+            </li>
+            <li>
+              Light that reaches the retina is absorbed by a pigment layer and
+              turns to heat.
+            </li>
+            <li>
+              The injury index compares absorbed power to an threshold. It is
+              not a real damage limit.
+            </li>
+            <li>
+              Wavelength changes how much light the lens and water absorb, and
+              how much the retina absorbs.
+            </li>
+            <li>
+              No laser class, safe limit or eyewear rating is calculated. See
+              PROJECT_NOTES.md.
+            </li>
+          </ul>
+        </details>
+      </div>
+    </main>
+
+    <!-- ================= LASER VS EVERYDAY LIGHT ================= -->
+    <main
+      class="cmp"
+      id="tabCmp"
+      role="tabpanel"
+      aria-labelledby="tabBtnCmp"
+      hidden
+    >
+      <section class="card cmp-head">
+        <h2 class="cmp-title">
+          Laser vs Everyday Light &mdash; What Happens Inside the Eye?
+        </h2>
+        <p class="small">
+          Pick a light source. Watch its light enter the eye and land on the
+          retina. Typical, simplified and . No source is ranked as safe or
+          unsafe here.
+        </p>
+        <div class="cmp-ctl">
+          <div class="ctl">
+            <div class="ch"><span class="ch-l" id="cmpModeLbl">Show</span></div>
+            <div
+              class="seg"
+              id="cmpMode"
+              role="group"
+              aria-labelledby="cmpModeLbl"
+            >
+              <button type="button" data-m="one" aria-pressed="false">
+                One source
+              </button>
+              <button type="button" data-m="two" aria-pressed="true">
+                Compare two
+              </button>
+            </div>
+          </div>
+          <div class="ctl" id="cmpPupilWrap"></div>
+          <div class="ctl" id="cmpDistWrap"></div>
+          <div class="ctl">
+            <div class="ch">
+              <span class="ch-l" id="cmpFocusLbl">Follow light from</span>
+            </div>
+            <div
+              class="seg"
+              id="cmpFocus"
+              role="group"
+              aria-labelledby="cmpFocusLbl"
+            >
+              <button type="button" data-f="all" aria-pressed="true">
+                All
+              </button>
+              <button type="button" data-f="top" aria-pressed="false">
+                Top
+              </button>
+              <button type="button" data-f="mid" aria-pressed="false">
+                Middle
+              </button>
+              <button type="button" data-f="bot" aria-pressed="false">
+                Bottom
+              </button>
+            </div>
+            <p class="hint">
+              Each point of a lamp lands on a different spot of the retina.
+            </p>
+          </div>
+          <div class="ctl" id="cmpLaserWrap">
+            <div class="ch">
+              <span class="ch-l" id="cmpLaserLbl">Laser wavelength</span>
+            </div>
+            <div
+              class="chips"
+              id="cmpLaserChips"
+              role="group"
+              aria-labelledby="cmpLaserLbl"
+            ></div>
+          </div>
+          <div class="ctl cmp-replay">
+            <button type="button" class="act" id="cmpReplay">
+              &#9654; Replay
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <div class="panels two" id="panels"></div>
+
+      <section class="card" aria-labelledby="hWhyCmp">
+        <h2 id="hWhyCmp">Why a normally lit room is generally different</h2>
+        <div class="whygrid">
+          <div class="why">
+            <b>Spread out</b>
+            <p>
+              Room lighting sends its power in many directions over a large
+              area. Only a small part of it enters the pupil.
+            </p>
+          </div>
+          <div class="why">
+            <b>An image, not a point</b>
+            <p>
+              The eye makes an <em>image</em> of the bulb on the retina. Move
+              the lamp closer and the image gets bigger, not more concentrated.
+              Try the distance slider.
+            </p>
+          </div>
+          <div class="why">
+            <b>A beam can pack power into a spot</b>
+            <p>
+              A narrow laser beam can put a large share of its power into a
+              retinal spot only tens of micrometres wide. Whether that is
+              hazardous depends on the power, wavelength and time. Many lasers
+              are low power.
+            </p>
+          </div>
+          <div class="why">
+            <b>Hazard depends on</b>
+            <div class="chips tags">
+              <span>Wavelength</span><span>Irradiance</span
+              ><span>Exposure time</span><span>Source size</span
+              ><span>Source brightness (radiance)</span>
+            </div>
+          </div>
+        </div>
+        <p class="small" id="geoNote">
+          Retinal image sizes are geometry only. Real lamps and lasers deliver
+          very different amounts of power, so image size alone does not make one
+          source safe or unsafe.
+        </p>
+      </section>
+
+      <section class="card" aria-labelledby="hTbl">
+        <h2 id="hTbl">Typical characteristics</h2>
+        <div class="tblwrap">
+          <table class="cmptbl" id="cmpTbl">
+            <thead>
+              <tr>
+                <th scope="col">Property</th>
+                <th scope="col" data-col="laser">Laser</th>
+                <th scope="col" data-col="led">White LED</th>
+                <th scope="col" data-col="sodium">Yellow gas-discharge lamp</th>
+                <th scope="col" data-col="sun">Sunlight</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Directionality</th>
+                <td data-col="laser">High</td>
+                <td data-col="led">Generally broad</td>
+                <td data-col="sodium">Generally broad</td>
+                <td data-col="sun">Large apparent source</td>
+              </tr>
+              <tr>
+                <th scope="row">Beam divergence</th>
+                <td data-col="laser">Often a few milliradians or less</td>
+                <td data-col="led">Wide, often tens of degrees</td>
+                <td data-col="sodium">Wide, many directions</td>
+                <td data-col="sun">
+                  Not a beam. The Sun spans 0.53&deg; of sky
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Spectrum</th>
+                <td data-col="laser">Usually narrow</td>
+                <td data-col="led">Depends on design</td>
+                <td data-col="sodium">Strong yellow emission lines</td>
+                <td data-col="sun">Broad (UV, visible, infrared)</td>
+              </tr>
+              <tr>
+                <th scope="row">Coherence</th>
+                <td data-col="laser">Usually high</td>
+                <td data-col="led">Low</td>
+                <td data-col="sodium">Low</td>
+                <td data-col="sun">Low</td>
+              </tr>
+              <tr>
+                <th scope="row">Beam concentration</th>
+                <td data-col="laser">Can be highly concentrated</td>
+                <td data-col="led">Usually distributed</td>
+                <td data-col="sodium">Usually distributed</td>
+                <td data-col="sun">Depends on viewing geometry</td>
+              </tr>
+              <tr>
+                <th scope="row">Image on the retina</th>
+                <td data-col="laser">Can be a tiny spot</td>
+                <td data-col="led">An image of the bulb</td>
+                <td data-col="sodium">An image of the lamp</td>
+                <td data-col="sun">An image of the Sun</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="small">
+          These are typical characteristics, not rules for every device. Lasers,
+          LEDs and lamps vary a lot.
+        </p>
+      </section>
+
+      <section class="card warnbox" aria-labelledby="hWarn">
+        <h2 id="hWarn">Ordinary light is not automatically harmless</h2>
+        <ul>
+          <li>
+            <strong>Never look directly at the Sun.</strong> It can cause
+            serious retinal injury.
+          </li>
+          <li>
+            Very bright LEDs, spotlights and other intense sources can also be
+            hazardous at close range or over long exposure. Do not stare at
+            them.
+          </li>
+          <li>
+            Many lasers are low power, and some are hazardous. See the laser
+            simulator for how power, wavelength and time matter.
+          </li>
+        </ul>
+        <button type="button" class="act" data-goto="sim">
+          Open the laser simulator
+        </button>
+      </section>
+    </main>
+
+    <footer>
+      LaserSafe &middot; runs offline &middot; educational simulation only
+    </footer>
+
+    <script src="js/physics.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/compare.js"></script>
+  </body>
+</html>
